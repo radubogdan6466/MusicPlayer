@@ -5,10 +5,8 @@ import {
   FlatList,
   TouchableOpacity,
   StyleSheet,
-  Image,
 } from "react-native";
 import * as MediaLibrary from "expo-media-library";
-import MusicInfo from "expo-music-info-2";
 
 const MusicListScreen = ({ onSongSelect }) => {
   const [musicFiles, setMusicFiles] = useState([]);
@@ -30,17 +28,10 @@ const MusicListScreen = ({ onSongSelect }) => {
         // Obținere detalii suplimentare pentru fiecare fișier
         const filesWithDetails = await Promise.all(
           media.assets.map(async (item) => {
-            const musicInfo = await MusicInfo.getMusicInfoAsync(item.uri, {
-              title: true,
-              artist: true,
-              album: true,
-              genre: true,
-              picture: true,
-            });
-
+            const details = await MediaLibrary.getAssetInfoAsync(item.id);
             return {
               ...item,
-              ...musicInfo, // Adaugă informațiile despre muzică
+              ...details, // Combina toate detaliile disponibile
             };
           })
         );
@@ -59,30 +50,9 @@ const MusicListScreen = ({ onSongSelect }) => {
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
           <TouchableOpacity onPress={() => onSongSelect(item)}>
-            <View style={styles.itemContainer}>
-              {item.picture && item.picture.pictureData ? (
-                <Image
-                  source={{ uri: item.picture.pictureData }}
-                  style={styles.itemImage}
-                />
-              ) : (
-                <View style={styles.itemImage} />
-              )}
-              <View style={styles.itemDetails}>
-                <Text style={styles.itemTitle}>
-                  {item.title || item.filename}
-                </Text>
-                <Text style={styles.itemArtist}>
-                  {item.artist || "Unknown artist"}
-                </Text>
-                {/* <Text style={styles.itemAlbum}>
-                  {item.album || "Unknown album"}
-                </Text>
-                <Text style={styles.itemGenre}>
-                  {item.genre || "Unknown genre"}
-                </Text> */}
-              </View>
-            </View>
+            <Text style={styles.itemText}>
+              {item.filename} - {item.artist || "no data"}
+            </Text>
           </TouchableOpacity>
         )}
       />
@@ -95,35 +65,9 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 20,
   },
-  itemContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginVertical: 10,
-  },
-  itemImage: {
-    width: 50,
-    height: 50,
-    borderRadius: 10,
-    backgroundColor: "#ccc",
-  },
-  itemDetails: {
-    marginLeft: 10,
-  },
-  itemTitle: {
+  itemText: {
     fontSize: 18,
-    // fontWeight: "bold",
-  },
-  itemArtist: {
-    fontSize: 16,
-    color: "gray",
-  },
-  itemAlbum: {
-    fontSize: 14,
-    color: "gray",
-  },
-  itemGenre: {
-    fontSize: 14,
-    color: "gray",
+    marginVertical: 10,
   },
 });
 
